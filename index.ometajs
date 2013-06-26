@@ -1,0 +1,27 @@
+ometa Condition {
+    expr = value:l operator:op value:r -> [ op, l, r ],
+
+    operator = ``<='' | '<' | ``>='' | '>' | ``=='' | ``!='',
+
+    variable = <(letter|'_') (letter | digit | '_')*>:v -> this._options.variables[v],
+
+    number = digit+ '.' digit+ | digit+,
+
+    string = ('\''|'"'):q (~seq(q) char):v q -> v,
+
+    value = variable | string | number
+}
+
+ometa Evaluator {
+    interp = [ '>' anything:x anything:y ] -> x > y
+        | ['<' anything:x anything:y ]     -> x < y
+        | ['>=' anything:x anything:y ]    -> x >= y
+        | ['<=' anything:x anything:y ]    -> x <= y
+        | ['!=' anything:x anything:y ]    -> x != y
+        | ['==' anything:x anything:y ]    -> x == y
+}
+
+module.exports = function (str, variables) {
+    var tree = Condition.matchAll(str, 'expr', { variables: variables });
+    return Evaluator.match(tree, 'interp');
+}
