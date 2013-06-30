@@ -24,9 +24,9 @@ require("util").inherits(Condition, AbstractGrammar);
 
 Condition.prototype["expr"] = function $expr() {
     var l, op, r;
-    return this._rule("value", false, [], null, this["value"]) && (l = this._getIntermediate(), 
+    return this._rule("atom", false, [], null, this["atom"]) && (l = this._getIntermediate(), 
     true) && this._rule("operator", false, [], null, this["operator"]) && (op = this._getIntermediate(), 
-    true) && this._rule("value", false, [], null, this["value"]) && (r = this._getIntermediate(), 
+    true) && this._rule("atom", false, [], null, this["atom"]) && (r = this._getIntermediate(), 
     true) && this._exec([ op, l, r ]);
 };
 
@@ -34,7 +34,7 @@ Condition.prototype["operator"] = function $operator() {
     return this._seq("<=") || this._match("<") || this._seq(">=") || this._match(">") || this._seq("==") || this._seq("!=");
 };
 
-Condition.prototype["variable"] = function $variable() {
+Condition.prototype["identifier"] = function $identifier() {
     var v;
     return this._list(function() {
         return (this._atomic(function() {
@@ -80,10 +80,16 @@ Condition.prototype["string"] = function $string() {
     }) && (v = this._getIntermediate(), true) && this._rule("q", false, [], null, this["q"]) && this._exec(v);
 };
 
-Condition.prototype["value"] = function $value() {
+Condition.prototype["atom"] = function $atom() {
     return this._atomic(function() {
-        return this._rule("variable", false, [], null, this["variable"]);
+        return this._rule("identifier", false, [], null, this["identifier"]);
     }) || this._atomic(function() {
+        return this._rule("literal", false, [], null, this["literal"]);
+    });
+};
+
+Condition.prototype["literal"] = function $literal() {
+    return this._atomic(function() {
         return this._rule("string", false, [], null, this["string"]);
     }) || this._atomic(function() {
         return this._rule("number", false, [], null, this["number"]);

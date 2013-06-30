@@ -1,15 +1,17 @@
 ometa Condition {
-    expr = value:l operator:op value:r -> [ op, l, r ],
+    expr = atom:l operator:op atom:r -> [ op, l, r ],
 
     operator = ``<='' | '<' | ``>='' | '>' | ``=='' | ``!='',
 
-    variable = <(letter|'_') (letter | digit | '_')*>:v -> this._options.variables[v],
+    identifier = <(letter|'_') (letter | digit | '_')*>:v -> this._options.variables[v],
 
     number = digit+ '.' digit+ | digit+,
 
     string = ('\''|'"'):q (~seq(q) char):v q -> v,
 
-    value = variable | string | number
+    atom = identifier | literal,
+
+    literal = string | number
 }
 
 ometa Evaluator {
