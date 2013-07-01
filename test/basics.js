@@ -18,6 +18,8 @@ test("Literals", function(t) {
     t.equal(parseLiteral('0x10'), 16);
     t.equal(parseLiteral('2.0'), 2.0);
     t.equal(parseLiteral('2.5'), 2.5);
+    t.equal(parseLiteral('2.5e5'), 250000);
+    t.equal(parseLiteral('2.5e-1'), 0.25);
     t.equal(parseLiteral('"test"'), "test");
     t.equal(parseLiteral("'test'"), "test");
     t.equal(parseLiteral('"""test"""'), "test");

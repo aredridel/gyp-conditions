@@ -77,9 +77,9 @@ Condition.prototype["pointfloat"] = function $pointfloat() {
 Condition.prototype["exponentfloat"] = function $exponentfloat() {
     var f, e;
     return (this._atomic(function() {
-        return this._rule("intpart", false, [], null, this["intpart"]);
-    }) || this._atomic(function() {
         return this._rule("pointfloat", false, [], null, this["pointfloat"]);
+    }) || this._atomic(function() {
+        return this._rule("intpart", false, [], null, this["intpart"]);
     })) && (f = this._getIntermediate(), true) && this._rule("exponent", false, [], null, this["exponent"]) && (e = this._getIntermediate(), 
     true) && this._exec(f + "e" + e);
 };
@@ -103,18 +103,14 @@ Condition.prototype["fraction"] = function $fraction() {
 };
 
 Condition.prototype["exponent"] = function $exponent() {
-    var e;
+    var s, e;
     return (this._match("e") || this._match("E")) && this._optional(function() {
         return this._match("+") || this._match("-");
-    }) && this._many(function() {
+    }) && (s = this._getIntermediate(), true) && this._many(function() {
         return this._atomic(function() {
             return this._rule("digit", false, [], null, this["digit"]);
         });
-    }) && (e = this._getIntermediate(), true);
-};
-
-Condition.prototype[""] = function $() {
-    return this._exec(e.join(""));
+    }) && (e = this._getIntermediate(), true) && this._exec((s ? s : "") + e.join(""));
 };
 
 Condition.prototype["longinteger"] = function $longinteger() {
@@ -207,9 +203,13 @@ Condition.prototype["hexdigit"] = function $hexdigit() {
 };
 
 Condition.prototype["stringliteral"] = function $stringliteral() {
+    var sp;
     return this._optional(function() {
         return this._rule("stringprefix", false, [], null, this["stringprefix"]);
-    }) && (this._atomic(function() {
+    }) && (sp = this._getIntermediate(), true) && this._exec(function() {
+        this.stringMode = sp;
+        return true;
+    }.call(this)) && (this._atomic(function() {
         return this._rule("longstring", false, [], null, this["longstring"]);
     }) || this._atomic(function() {
         return this._rule("shortstring", false, [], null, this["shortstring"]);

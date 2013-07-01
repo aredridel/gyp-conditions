@@ -8,10 +8,10 @@ ometa Condition {
     floatnumber = (exponentfloat | pointfloat):f -> parseFloat(f),
     pointfloat  =  intpart?:x fraction:y -> x + "." + y
         | intpart:x '.' -> x + ".0",
-    exponentfloat =  (intpart | pointfloat):f exponent:e -> f + 'e' + e,
+    exponentfloat =  (pointfloat | intpart):f exponent:e -> f + 'e' + e,
     intpart       =  digit+:v -> v.join(''),
     fraction      =  '.' digit+:y -> y.join(''),
-    exponent      =  ('e' | 'E') ('+' | '-')? digit+:e, -> e.join(''),
+    exponent      =  ('e' | 'E') ('+' | '-')?:s digit+:e -> (s ? s : "") + e.join(''),
 
     longinteger = integer:i ('L' | 'l') -> i,
     integer = bininteger | octinteger | hexinteger | decimalinteger,
