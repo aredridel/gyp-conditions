@@ -207,12 +207,95 @@ Condition.prototype["hexdigit"] = function $hexdigit() {
 };
 
 Condition.prototype["stringliteral"] = function $stringliteral() {
-    var q, v;
-    return (this._match("'") || this._match('"')) && (q = this._getIntermediate(), true) && this._atomic(function() {
-        return !this._atomic(function() {
+    return this._optional(function() {
+        return this._rule("stringprefix", false, [], null, this["stringprefix"]);
+    }) && (this._atomic(function() {
+        return this._rule("longstring", false, [], null, this["longstring"]);
+    }) || this._atomic(function() {
+        return this._rule("shortstring", false, [], null, this["shortstring"]);
+    }));
+};
+
+Condition.prototype["stringprefix"] = function $stringprefix() {
+    return this._match("r") || this._match("u") || this._match("ur") || this._match("R") || this._match("U") || this._match("UR") || this._match("Ur") || this._match("uR") || this._match("b") || this._match("B") || this._match("br") || this._match("Br") || this._match("bR") || this._match("BR");
+};
+
+Condition.prototype["shortstring"] = function $shortstring() {
+    return this._atomic(function() {
+        var v;
+        return this._match("'") && this._any(function() {
+            return this._atomic(function() {
+                return this._rule("shortstringitem", false, [ "'" ], null, this["shortstringitem"]);
+            });
+        }) && (v = this._getIntermediate(), true) && this._match("'") && this._exec(v.join(""));
+    }) || this._atomic(function() {
+        var v;
+        return this._match('"') && this._any(function() {
+            return this._atomic(function() {
+                return this._rule("shortstringitem", false, [ '"' ], null, this["shortstringitem"]);
+            });
+        }) && (v = this._getIntermediate(), true) && this._match('"') && this._exec(v.join(""));
+    });
+};
+
+Condition.prototype["longstring"] = function $longstring() {
+    return this._atomic(function() {
+        var v;
+        return this._rule("seq", false, [ "'''" ], null, this["seq"]) && this._any(function() {
+            return this._atomic(function() {
+                return !this._atomic(function() {
+                    return this._rule("seq", false, [ "'''" ], null, this["seq"]);
+                }, true) && this._rule("longstringitem", false, [], null, this["longstringitem"]);
+            });
+        }) && (v = this._getIntermediate(), true) && this._rule("seq", false, [ "'''" ], null, this["seq"]) && this._exec(v.join(""));
+    }) || this._atomic(function() {
+        var v;
+        return this._rule("seq", false, [ '"""' ], null, this["seq"]) && this._any(function() {
+            return this._atomic(function() {
+                return !this._atomic(function() {
+                    return this._rule("seq", false, [ '"""' ], null, this["seq"]);
+                }, true) && this._rule("longstringitem", false, [], null, this["longstringitem"]);
+            });
+        }) && (v = this._getIntermediate(), true) && this._rule("seq", false, [ '"""' ], null, this["seq"]) && this._exec(v.join(""));
+    });
+};
+
+Condition.prototype["shortstringitem"] = function $shortstringitem() {
+    var q;
+    return this._skip() && (q = this._getIntermediate(), true) && (this._atomic(function() {
+        return this._rule("escapeseq", false, [], null, this["escapeseq"]);
+    }) || this._atomic(function() {
+        return this._rule("shortstringchar", false, [ q ], null, this["shortstringchar"]);
+    }));
+};
+
+Condition.prototype["shortstringchar"] = function $shortstringchar() {
+    var q;
+    return this._skip() && (q = this._getIntermediate(), true) && !this._atomic(function() {
+        return this._match("\\") || this._match("\n") || this._atomic(function() {
             return this._rule("seq", false, [ q ], null, this["seq"]);
-        }, true) && this._rule("char", false, [], null, this["char"]);
-    }) && (v = this._getIntermediate(), true) && this._rule("q", false, [], null, this["q"]) && this._exec(v);
+        });
+    }, true) && this._rule("char", false, [], null, this["char"]);
+};
+
+Condition.prototype["longstringitem"] = function $longstringitem() {
+    return this._atomic(function() {
+        return this._rule("escapeseq", false, [], null, this["escapeseq"]);
+    }) || this._atomic(function() {
+        return this._rule("longstringchar", false, [], null, this["longstringchar"]);
+    });
+};
+
+Condition.prototype["longstringchar"] = function $longstringchar() {
+    return !this._atomic(function() {
+        return this._match("\\");
+    }, true) && this._rule("char", false, [], null, this["char"]);
+};
+
+Condition.prototype["escapeseq"] = function $escapeseq() {
+    var v;
+    return this._match("\\") && this._rule("char", false, [], null, this["char"]) && (v = this._getIntermediate(), 
+    true) && this._exec(v);
 };
 
 Condition.prototype["atom"] = function $atom() {

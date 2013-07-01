@@ -26,7 +26,18 @@ ometa Condition {
     bindigit = /[01]/,
     hexdigit = digit | /[a-f]/i,
 
-    stringliteral = ('\''|'"'):q (~seq(q) char):v q -> v,
+    stringliteral   =  stringprefix? (longstring | shortstring),
+    stringprefix    =  'r' | 'u' | 'ur' | 'R' | 'U' | 'UR' | 'Ur' | 'uR'
+                        | 'b' | 'B' | 'br' | 'Br' | 'bR' | 'BR',
+    shortstring     =  '\'' shortstringitem('\'')*:v '\'' -> v.join('')
+                        | '"' shortstringitem('"')*:v '"' -> v.join(''),
+    longstring      =  seq('\'\'\'') (~seq('\'\'\'') longstringitem)*:v seq('\'\'\'') -> v.join('')
+                        | seq('"""') (~seq('"""') longstringitem)*:v seq('"""') -> v.join(''),
+    shortstringitem :q = escapeseq | shortstringchar(q),
+    shortstringchar :q =  ~('\\' | '\n' | seq(q)) char,
+    longstringitem  =  escapeseq | longstringchar,
+    longstringchar  =  ~'\\' char,
+    escapeseq       =  '\\' char:v -> v,
 
     atom = identifier | literal,
 
