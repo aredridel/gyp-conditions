@@ -293,9 +293,36 @@ Condition.prototype["longstringchar"] = function $longstringchar() {
 };
 
 Condition.prototype["escapeseq"] = function $escapeseq() {
-    var v;
-    return this._match("\\") && this._rule("char", false, [], null, this["char"]) && (v = this._getIntermediate(), 
-    true) && this._exec(v);
+    return this._atomic(function() {
+        var u;
+        return this._rule("seq", false, [ "\\u" ], null, this["seq"]) && this._list(function() {
+            return this._optional(function() {
+                return this._rule("digit", false, [], null, this["digit"]);
+            }) && this._optional(function() {
+                return this._rule("digit", false, [], null, this["digit"]);
+            }) && this._optional(function() {
+                return this._rule("digit", false, [], null, this["digit"]);
+            }) && this._rule("digit", false, [], null, this["digit"]);
+        }, true) && (u = this._getIntermediate(), true) && this._exec(String.fromCharCode(parseInt(u, 10)));
+    }) || this._atomic(function() {
+        var o;
+        return this._match("\\") && this._list(function() {
+            return this._rule("octdigit", false, [], null, this["octdigit"]) && this._optional(function() {
+                return this._rule("octdigit", false, [], null, this["octdigit"]);
+            }) && this._optional(function() {
+                return this._rule("octdigit", false, [], null, this["octdigit"]);
+            });
+        }, true) && (o = this._getIntermediate(), true) && this._exec(String.fromCharCode(parseInt(o, 8)));
+    }) || this._atomic(function() {
+        var x;
+        return this._rule("seq", false, [ "\\x" ], null, this["seq"]) && this._list(function() {
+            return this._rule("hexdigit", false, [], null, this["hexdigit"]) && this._rule("hexdigit", false, [], null, this["hexdigit"]);
+        }, true) && (x = this._getIntermediate(), true) && this._exec(String.fromCharCode(parseInt(x, 16)));
+    }) || this._atomic(function() {
+        var v;
+        return this._match("\\") && this._rule("char", false, [], null, this["char"]) && (v = this._getIntermediate(), 
+        true) && this._exec(unescape(v));
+    });
 };
 
 Condition.prototype["atom"] = function $atom() {
@@ -371,6 +398,49 @@ Evaluator.prototype["interp"] = function $interp() {
         }) && this._exec(x == y);
     });
 };
+
+function unescape(c) {
+    switch (c) {
+      case "\n":
+        return "";
+
+      case "\\":
+        return "\\";
+
+      case '"':
+        return '"';
+
+      case "'":
+        return "'";
+
+      case "a":
+        return "";
+
+      case "b":
+        return "\b";
+
+      case "f":
+        return "";
+
+      case "n":
+        return "\n";
+
+      case "N":
+        throw new Error("not supported");
+
+      case "r":
+        return "\r";
+
+      case "t":
+        return "	";
+
+      case "v":
+        return "";
+
+      default:
+        return "\\" + c;
+    }
+}
 
 module.exports = function(str, variables) {
     var tree = Condition.matchAll(str, "expr", {

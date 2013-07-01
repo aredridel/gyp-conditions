@@ -37,7 +37,10 @@ ometa Condition {
     shortstringchar :q =  ~('\\' | '\n' | seq(q)) char,
     longstringitem  =  escapeseq | longstringchar,
     longstringchar  =  ~'\\' char,
-    escapeseq       =  '\\' char:v -> v,
+    escapeseq       =  seq('\\u') <digit? digit? digit? digit>:u -> String.fromCharCode(parseInt(u, 10));
+                        | '\\' <octdigit octdigit? octdigit?>:o -> String.fromCharCode(parseInt(o, 8));
+                        | seq('\\x') <hexdigit hexdigit>:x -> String.fromCharCode(parseInt(x, 16));
+                        | '\\' char:v -> unescape(v),
 
     atom = identifier | literal,
 
@@ -51,6 +54,24 @@ ometa Evaluator {
         | ['<=' anything:x anything:y ]    -> x <= y
         | ['!=' anything:x anything:y ]    -> x != y
         | ['==' anything:x anything:y ]    -> x == y
+}
+
+function unescape(c) {
+    switch (c) {
+        case '\n': return '';
+        case '\\': return '\\';
+        case '"': return '"';
+        case "'": return "'";
+        case 'a': return '\u0007';
+        case 'b': return '\u0008';
+        case 'f': return '\u0012';
+        case 'n': return '\n';
+        case 'N': throw new Error("not supported");
+        case 'r': return '\r';
+        case 't': return '\t';
+        case 'v': return '\u0011';
+        default: return "\\" + c;
+    }
 }
 
 module.exports = function (str, variables) {

@@ -25,3 +25,21 @@ test("Literals", function(t) {
     t.end();
 });
 
+test("Escape Codes", function(t) {
+    t.equal(parseLiteral('"\\n"'), "\n");
+    t.equal(parseLiteral('"\\\\"'), "\\");
+    t.equal(parseLiteral('"\\""'), '"');
+    t.equal(parseLiteral('"\\\'"'), "'");
+    t.equal(parseLiteral('"\\a"'), "\u0007");
+    t.equal(parseLiteral('"\\b"'), "\u0008");
+    t.equal(parseLiteral('"\\v"'), "\u0011");
+    t.equal(parseLiteral('"\\f"'), "\u0012");
+    t.equal(parseLiteral('"\\t"'), "\t");
+    t.equal(parseLiteral('"\\r"'), "\r");
+    t.equal(parseLiteral('"\\u0001"'), "\u0001");
+    t.equal(parseLiteral('"\\001"'), "\u0001");
+    t.equal(parseLiteral('"\\x01"'), "\u0001");
+    t.equal(parseLiteral('"\\z"'), "\\z");
+    t.end();
+});
+
