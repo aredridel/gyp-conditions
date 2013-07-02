@@ -1,31 +1,8 @@
 ometa Condition {
-    expr = atom:l operator:op atom:r -> [ op, l, r ],
+    // 2.4 Literals
+    literal = stringliteral | floatnumber | longinteger | integer,
 
-    operator = ``<='' | '<' | ``>='' | '>' | ``=='' | ``!='',
-
-    identifier = <(letter|'_') (letter | digit | '_')*>:v -> this._options.variables[v],
-
-    floatnumber = (exponentfloat | pointfloat):f -> parseFloat(f),
-    pointfloat  =  intpart?:x fraction:y -> x + "." + y
-        | intpart:x '.' -> x + ".0",
-    exponentfloat =  (pointfloat | intpart):f exponent:e -> f + 'e' + e,
-    intpart       =  digit+:v -> v.join(''),
-    fraction      =  '.' digit+:y -> y.join(''),
-    exponent      =  ('e' | 'E') ('+' | '-')?:s digit+:e -> (s ? s : "") + e.join(''),
-
-    longinteger = integer:i ('L' | 'l') -> i,
-    integer = bininteger | octinteger | hexinteger | decimalinteger,
-    decimalinteger = (nonzerodigit digit*):v -> parseInt(v, 10)
-        | '0' -> 0,
-    octinteger = /0o/i octdigit+:v -> parseInt(v.join(''), 8);
-        | ('0' octdigit+):v -> parseInt(v, 8),
-    hexinteger = /0x/i hexdigit+:v -> parseInt(v.join(''), 16),
-    bininteger = /0b/i bindigit+:v -> parseInt(v.join(''), 2),
-    nonzerodigit = /[1-9]/,
-    octdigit = /[0-7]/,
-    bindigit = /[01]/,
-    hexdigit = digit | /[a-f]/i,
-
+    // 2.4.1 String Literals
     stringliteral   =  stringprefix?:sp { this.stringMode = sp ? sp.toLowerCase() : '' } (longstring | shortstring),
     stringprefix    =  ``UR'' | ``Ur'' | ``uR'' | ``ur'' | ``br'' | ``Br'' | ``bR'' | ``BR''
                         | 'r' | 'R' | 'u' | 'U' | 'b' | 'B',
@@ -43,9 +20,50 @@ ometa Condition {
                         | ?( !this.stringMode.match(/r/) ) seq('\\') char:v -> unescape(v)
                         | ?( this.stringMode.match(/r/) ) seq('\\') char:v -> '\\' + v,
 
+    // 2.4.3 Numeric Literals
+    // 2.4.4 Integer and long integer literals
+    longinteger = integer:i ('L' | 'l') -> i,
+    integer = bininteger | octinteger | hexinteger | decimalinteger,
+    decimalinteger = (nonzerodigit digit*):v -> parseInt(v, 10)
+        | '0' -> 0,
+    octinteger = /0o/i octdigit+:v -> parseInt(v.join(''), 8);
+        | ('0' octdigit+):v -> parseInt(v, 8),
+    hexinteger = /0x/i hexdigit+:v -> parseInt(v.join(''), 16),
+    bininteger = /0b/i bindigit+:v -> parseInt(v.join(''), 2),
+    nonzerodigit = /[1-9]/,
+    octdigit = /[0-7]/,
+    bindigit = /[01]/,
+    hexdigit = digit | /[a-f]/i,
+
+    // 2.4.5 Floating point literals
+    floatnumber = (exponentfloat | pointfloat):f -> parseFloat(f),
+    pointfloat  =  intpart?:x fraction:y -> x + "." + y
+        | intpart:x '.' -> x + ".0",
+    exponentfloat =  (pointfloat | intpart):f exponent:e -> f + 'e' + e,
+    intpart       =  digit+:v -> v.join(''),
+    fraction      =  '.' digit+:y -> y.join(''),
+    exponent      =  ('e' | 'E') ('+' | '-')?:s digit+:e -> (s ? s : "") + e.join(''),
+
+    // 2.4.6 Imaginary literals
+    // Not done yet
+
+    // 2.5 Operators
+    operator = '+' | '-' | '*' | ``**'' | '/' | ``//'' | '%'
+                | ``<<'' | ``>>'' | '&' | '|' | '^' | '~'
+                | ``<='' | '<' | ``>='' | '>' | ``=='' | ``!='' | ``<>'',
+
+    // 2.6 Delimiters
+    delimiter =  '(' | ')' | '[' | ']' | '{' | '}' 
+                | '@' | ',' | ':' | '.' | '`' | '=' | ';'
+                | ``+='' | ``-='' | ``*='' | ``/='' | ``//='' | ``%=''
+                | ``&='' | ``|='' | ``^='' | ``>>='' | ``<<='' | ``**='',
+
+    identifier = <(letter|'_') (letter | digit | '_')*>:v -> this._options.variables[v],
+
+
     atom = identifier | literal,
 
-    literal = stringliteral | floatnumber | longinteger | integer
+    expr = atom:l operator:op atom:r -> [ op, l, r ]
 }
 
 ometa Evaluator {
