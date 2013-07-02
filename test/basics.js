@@ -12,36 +12,40 @@ test("Basic conditions", function (t) {
 });
 
 test("Literals", function(t) {
-    t.equal(parseLiteral('0'), 0);
-    t.equal(parseLiteral('010'), 8);
-    t.equal(parseLiteral('0o10'), 8);
-    t.equal(parseLiteral('0x10'), 16);
-    t.equal(parseLiteral('2.0'), 2.0);
-    t.equal(parseLiteral('2.5'), 2.5);
-    t.equal(parseLiteral('2.5e5'), 250000);
-    t.equal(parseLiteral('2.5e-1'), 0.25);
-    t.equal(parseLiteral('"test"'), "test");
-    t.equal(parseLiteral("'test'"), "test");
-    t.equal(parseLiteral('"""test"""'), "test");
-    t.equal(parseLiteral("'''test'''"), "test");
+    t.equal(parseLiteral('0'), 0, "Zero");
+    t.equal(parseLiteral('010'), 8, "Octal 10 with 0 prefix");
+    t.equal(parseLiteral('0o10'), 8, "Octal 10 with 0o prefix");
+    t.equal(parseLiteral('0x10'), 16, "Hex 10");
+    t.equal(parseLiteral('2.0'), 2.0, "Float 2.0");
+    t.equal(parseLiteral('2.5'), 2.5, "Float 2.5");
+    t.equal(parseLiteral('2.5e5'), 250000, "2.5e5");
+    t.equal(parseLiteral('2.5e-1'), 0.25, "2.5e-1");
+    t.equal(parseLiteral('"test"'), "test", "double quoted string");
+    t.equal(parseLiteral("'test'"), "test", "single quoted string");
+    t.equal(parseLiteral('"""test"""'), "test", "double quoted longstring");
+    t.equal(parseLiteral("'''test'''"), "test", "single quoted longstring");
     t.end();
 });
 
 test("Escape Codes", function(t) {
-    t.equal(parseLiteral('"\\n"'), "\n");
-    t.equal(parseLiteral('"\\\\"'), "\\");
-    t.equal(parseLiteral('"\\""'), '"');
-    t.equal(parseLiteral('"\\\'"'), "'");
-    t.equal(parseLiteral('"\\a"'), "\u0007");
-    t.equal(parseLiteral('"\\b"'), "\u0008");
-    t.equal(parseLiteral('"\\v"'), "\u0011");
-    t.equal(parseLiteral('"\\f"'), "\u0012");
-    t.equal(parseLiteral('"\\t"'), "\t");
-    t.equal(parseLiteral('"\\r"'), "\r");
-    t.equal(parseLiteral('"\\u0001"'), "\u0001");
-    t.equal(parseLiteral('"\\001"'), "\u0001");
-    t.equal(parseLiteral('"\\x01"'), "\u0001");
-    t.equal(parseLiteral('"\\z"'), "\\z");
+    t.equal(parseLiteral('"\\n"'), "\n", "newline escape");
+    t.equal(parseLiteral('"\\\\"'), "\\", "escaped backslash");
+    t.equal(parseLiteral('"\\""'), '"', "escaped double quote");
+    t.equal(parseLiteral('"\\\'"'), "'", "escaped single quote");
+    t.equal(parseLiteral('"\\a"'), "\u0007", "bell");
+    t.equal(parseLiteral('r"\\a"'), "\\a", "raw modifier on bell escape");
+    t.equal(parseLiteral('"\\b"'), "\u0008", "backspace");
+    t.equal(parseLiteral('"\\v"'), "\u0011", "vtab");
+    t.equal(parseLiteral('"\\f"'), "\u0012", "form feed");
+    t.equal(parseLiteral('"\\t"'), "\t", "tab");
+    t.equal(parseLiteral('"\\r"'), "\r", "carriage return");
+    t.equal(parseLiteral('"\\u0001"'), "\\u0001", "unicode in plain string");
+    t.equal(parseLiteral('u"\\u0001"'), "\u0001", "unicode in unicode string");
+    t.equal(parseLiteral('r"\\u0001"'), "\\u0001", "unicode in raw string");
+    t.equal(parseLiteral('ur"\\u0001"'), "\u0001", "unicode in raw unicode string");
+    t.equal(parseLiteral('"\\001"'), "\u0001", "octal byte");
+    t.equal(parseLiteral('"\\x01"'), "\u0001", "hex byte");
+    t.equal(parseLiteral('"\\z"'), "\\z", "invalid escape");
     t.end();
 });
 

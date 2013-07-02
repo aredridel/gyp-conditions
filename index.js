@@ -206,10 +206,7 @@ Condition.prototype["stringliteral"] = function $stringliteral() {
     var sp;
     return this._optional(function() {
         return this._rule("stringprefix", false, [], null, this["stringprefix"]);
-    }) && (sp = this._getIntermediate(), true) && this._exec(function() {
-        this.stringMode = sp;
-        return true;
-    }.call(this)) && (this._atomic(function() {
+    }) && (sp = this._getIntermediate(), true) && this._exec(this.stringMode = sp ? sp.toLowerCase() : "") && (this._atomic(function() {
         return this._rule("longstring", false, [], null, this["longstring"]);
     }) || this._atomic(function() {
         return this._rule("shortstring", false, [], null, this["shortstring"]);
@@ -217,7 +214,7 @@ Condition.prototype["stringliteral"] = function $stringliteral() {
 };
 
 Condition.prototype["stringprefix"] = function $stringprefix() {
-    return this._match("r") || this._match("u") || this._match("ur") || this._match("R") || this._match("U") || this._match("UR") || this._match("Ur") || this._match("uR") || this._match("b") || this._match("B") || this._match("br") || this._match("Br") || this._match("bR") || this._match("BR");
+    return this._seq("UR") || this._seq("Ur") || this._seq("uR") || this._seq("ur") || this._seq("br") || this._seq("Br") || this._seq("bR") || this._seq("BR") || this._match("r") || this._match("R") || this._match("u") || this._match("U") || this._match("b") || this._match("B");
 };
 
 Condition.prototype["shortstring"] = function $shortstring() {
@@ -295,18 +292,18 @@ Condition.prototype["longstringchar"] = function $longstringchar() {
 Condition.prototype["escapeseq"] = function $escapeseq() {
     return this._atomic(function() {
         var u;
-        return this._rule("seq", false, [ "\\u" ], null, this["seq"]) && this._list(function() {
-            return this._optional(function() {
+        return this.stringMode.match(/u/) && this._rule("seq", false, [ "\\u" ], null, this["seq"]) && this._list(function() {
+            return this._rule("digit", false, [], null, this["digit"]) && this._optional(function() {
                 return this._rule("digit", false, [], null, this["digit"]);
             }) && this._optional(function() {
                 return this._rule("digit", false, [], null, this["digit"]);
             }) && this._optional(function() {
                 return this._rule("digit", false, [], null, this["digit"]);
-            }) && this._rule("digit", false, [], null, this["digit"]);
+            });
         }, true) && (u = this._getIntermediate(), true) && this._exec(String.fromCharCode(parseInt(u, 10)));
     }) || this._atomic(function() {
         var o;
-        return this._match("\\") && this._list(function() {
+        return !this.stringMode.match(/r/) && this._rule("seq", false, [ "\\" ], null, this["seq"]) && this._list(function() {
             return this._rule("octdigit", false, [], null, this["octdigit"]) && this._optional(function() {
                 return this._rule("octdigit", false, [], null, this["octdigit"]);
             }) && this._optional(function() {
@@ -315,13 +312,17 @@ Condition.prototype["escapeseq"] = function $escapeseq() {
         }, true) && (o = this._getIntermediate(), true) && this._exec(String.fromCharCode(parseInt(o, 8)));
     }) || this._atomic(function() {
         var x;
-        return this._rule("seq", false, [ "\\x" ], null, this["seq"]) && this._list(function() {
+        return !this.stringMode.match(/r/) && this._rule("seq", false, [ "\\x" ], null, this["seq"]) && this._list(function() {
             return this._rule("hexdigit", false, [], null, this["hexdigit"]) && this._rule("hexdigit", false, [], null, this["hexdigit"]);
         }, true) && (x = this._getIntermediate(), true) && this._exec(String.fromCharCode(parseInt(x, 16)));
     }) || this._atomic(function() {
         var v;
-        return this._match("\\") && this._rule("char", false, [], null, this["char"]) && (v = this._getIntermediate(), 
+        return !this.stringMode.match(/r/) && this._rule("seq", false, [ "\\" ], null, this["seq"]) && this._rule("char", false, [], null, this["char"]) && (v = this._getIntermediate(), 
         true) && this._exec(unescape(v));
+    }) || this._atomic(function() {
+        var v;
+        return this.stringMode.match(/r/) && this._rule("seq", false, [ "\\" ], null, this["seq"]) && this._rule("char", false, [], null, this["char"]) && (v = this._getIntermediate(), 
+        true) && this._exec("\\" + v);
     });
 };
 
