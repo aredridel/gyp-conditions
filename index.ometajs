@@ -49,30 +49,152 @@ ometa Condition {
 
     // 2.5 Operators
     operator = '+' | '-' | '*' | ``**'' | '/' | ``//'' | '%'
-                | ``<<'' | ``>>'' | '&' | '|' | '^' | '~'
-                | ``<='' | '<' | ``>='' | '>' | ``=='' | ``!='' | ``<>'',
+        | ``<<'' | ``>>'' | '&' | '|' | '^' | '~'
+        | ``<='' | '<' | ``>='' | '>' | ``=='' | ``!='' | ``<>'',
 
     // 2.6 Delimiters
     delimiter =  '(' | ')' | '[' | ']' | '{' | '}' 
-                | '@' | ',' | ':' | '.' | '`' | '=' | ';'
-                | ``+='' | ``-='' | ``*='' | ``/='' | ``//='' | ``%=''
-                | ``&='' | ``|='' | ``^='' | ``>>='' | ``<<='' | ``**='',
+        | '@' | ',' | ':' | '.' | '`' | '=' | ';'
+        | ``+='' | ``-='' | ``*='' | ``/='' | ``//='' | ``%=''
+        | ``&='' | ``|='' | ``^='' | ``>>='' | ``<<='' | ``**='',
 
+    // 5.2 Atoms
+    atom = identifier | literal | enclosure,
+    enclosure = parenth_form |  list_display | generator_expression
+        | dict_display | set_display | string_conversion | yield_atom,
+
+    // 5.2.1 Identifiers
     identifier = <(letter|'_') (letter | digit | '_')*>:v -> this._options.variables[v],
 
+    // 5.2.3 Parenthesized Forms
+    parenth_form =  '(' expression_list? ')',
 
-    atom = identifier | literal,
+    // 5.2.4 List displays
+    list_display    =  '[' (expression_list | list_comprehension)? ']',
+    list_comprehension  =  expression list_for,
+    list_for            =  ``for'' target_list ``in'' old_expression_list list_iter?,
+    old_expression_list =  old_expression ((',' old_expression)+ ','?)?,
+    old_expression      =  or_test | old_lambda_form,
+    list_iter           =  list_for | list_if,
+    list_if             =  ``if'' old_expression (list_iter)?,
 
-    expr = atom:l operator:op atom:r -> [ op, l, r ]
+    // 5.2.5 Displays for sets and dictionaries
+    comprehension =  expression comp_for,
+    comp_for      =  ``for'' target_list ``in'' or_test comp_iter?,
+    comp_iter     =  comp_for | comp_if,
+    comp_if       =  ``if'' expression_nocond comp_iter?,
+
+    // 5.2.6 Generator expressions
+    generator_expression =  '(' expression comp_for ')',
+
+    // 5.2.7 Dictionary displays
+    dict_display       =  '{' (key_datum_list | dict_comprehension)? '}',
+    key_datum_list     =  key_datum (',' key_datum)* ','?,
+    key_datum          =  expression ':' expression,
+    dict_comprehension =  expression ':' expression comp_for,
+
+    // 5.2.8 Set displays
+    set_display =  '{' (expression_list | comprehension) '}',
+
+    // 5.2.9 String conversions
+    string_conversion =  '`' expression_list '`',
+
+    // 5.2.10 Yield expressions
+    yield_atom       =  '(' yield_expression ')',
+    yield_expression =  ``yield'' expression_list?,
+
+    // 5.3 Primaries
+    primary =  atom | attributeref | subscription | slicing | call,
+
+    // 5.3.1 Attribute references
+    attributeref =  primary '.' identifier,
+
+    // 5.3.2 Subscriptions
+    subscription =  primary '[' expression_list ']',
+
+    // 5.3.3. Slicings
+    slicing          =  simple_slicing | extended_slicing,
+    simple_slicing   =  primary '[' short_slice ']',
+    extended_slicing =  primary '[' slice_list ']',
+    slice_list       =  slice_item (',' slice_item)* ','?,
+    slice_item       =  expression | proper_slice | ellipsis,
+    proper_slice     =  short_slice | long_slice,
+    short_slice      =  lower_bound? ':' upper_bound?,
+    long_slice       =  short_slice ':' stride?,
+    lower_bound      =  expression,
+    upper_bound      =  expression,
+    stride           =  expression,
+    ellipsis         =  ``...'',
+
+    // 5.3.4 Calls
+    call             =  primary '(' [argument_list ','?
+                          | expression genexpr_for] ')',
+    argument_list    =  positional_arguments (',' keyword_arguments)?
+                            (',' '*' expression)? (',' keyword_arguments)?
+                            (',' ``**'' expression)?,
+                          | keyword_arguments (',' '*' expression)?
+                            (',' ``**'' expression)?
+                          | '*' expression (',' '*' expression)? (',' ``**'' expression)?
+                          | ``**'' expression,
+    positional_arguments =  expression (',' expression)*,
+    keyword_arguments    =  keyword_item (',' keyword_item)*,
+    keyword_item         =  identifier "=" expression,
+
+    // 5.4 Power operator
+    power = primary (``**'' u_expr)?,
+
+    // 5.5 Unary arithmetic and bitwise operations
+    u_expr =  power | '-' u_expr | '+' u_expr | '~' u_expr,
+
+    // 5.6 Binary arithmetic operations
+    m_expr =  u_expr | m_expr '*' u_expr | m_expr ``//'' u_expr | m_expr '/' u_expr
+            | m_expr '%' u_expr,
+    a_expr =  m_expr | a_expr '+' m_expr | a_expr '-' m_expr,
+
+    // 5.7 Shifting operations
+    shift_expr = a_expr | shift_expr ( ``<<'' | ``>>'' ) a_expr,
+
+    // 5.8 Binary bitwise operations
+    and_expr =  shift_expr | and_expr:l '&' shift_expr:r -> [ '&', l, r ],
+    xor_expr =  and_expr | xor_expr:l '^' and_expr:r -> [ '^', l, r ],
+    or_expr  =  xor_expr | or_expr:l '|' xor_expr:r -> [ '|', l, r ],
+
+    // 5.9 Comparisons
+    comparison    =  or_expr:l comp_operator:op comparison:r -> [ op, l, r]
+                    | or_expr,
+    comp_operator =  ``<='' | ``>='' |  '<' | '>' | ``=='' | ``<>'' | ``!=''
+                   | "is" "not"? | "not"? "in",
+
+    // 5.10 Boolean operations
+    or_test  =  and_test | or_test:l "or" and_test:r -> ['or', l, r],
+    and_test =  not_test | and_test:r "and" not_test:r -> ['and', l, r],
+    not_test =  comparison | "not" not_test:r -> ['not', r],
+
+    // 5.11 Conditional Expressions
+    conditional_expression =  or_test:l ("if" or_test:c "else" expression:r) -> [ 'if', c, l, r  ]
+                    | or_test,
+    expression      =  conditional_expression | lambda_form,
+
+    // 5.12 Lambdas
+    lambda_form     =  "lambda" parameter_list? ':' expression,
+    old_lambda_form =  "lambda" parameter_list? ':' old_expression,
+
+    // 5.13 Expression lists
+    expression_list =  expression ( "," expression )* ','?,
+
+    expr = expression end
 }
 
 ometa Evaluator {
-    interp = [ '>' anything:x anything:y ] -> x > y
-        | ['<' anything:x anything:y ]     -> x < y
-        | ['>=' anything:x anything:y ]    -> x >= y
-        | ['<=' anything:x anything:y ]    -> x <= y
-        | ['!=' anything:x anything:y ]    -> x != y
-        | ['==' anything:x anything:y ]    -> x == y
+    interp = [ '>' interp:x interp:y ]  -> x > y
+        | ['<' interp:x interp:y ]      -> x < y
+        | ['>=' interp:x interp:y ]     -> x >= y
+        | ['<=' interp:x interp:y ]     -> x <= y
+        | ['!=' interp:x interp:y ]     -> x != y
+        | ['==' interp:x interp:y ]     -> x == y
+        | ['is' interp:x interp:y ]     -> x == y
+        | ['is not' interp:x interp:y ] -> x != y
+        | anything:x -> x
 }
 
 function unescape(c) {
