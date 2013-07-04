@@ -22,6 +22,14 @@ exports.Condition = Condition;
 
 require("util").inherits(Condition, AbstractGrammar);
 
+Condition.prototype["spaces"] = function $spaces() {
+    return this._seq(/^([ \t\v\f]*)/);
+};
+
+Condition.prototype["keyword"] = function $keyword() {
+    return this._seq("and") || this._seq("del") || this._seq("from") || this._seq("not") || this._seq("while") || this._seq("as") || this._seq("elif") || this._seq("global") || this._seq("or") || this._seq("with") || this._seq("assert") || this._seq("else") || this._seq("if") || this._seq("pass") || this._seq("yield") || this._seq("break") || this._seq("except") || this._seq("import") || this._seq("print") || this._seq("class") || this._seq("exec") || this._seq("in") || this._seq("raise") || this._seq("continue") || this._seq("finally") || this._seq("is") || this._seq("return") || this._seq("def") || this._seq("for") || this._seq("lambda") || this._seq("try");
+};
+
 Condition.prototype["literal"] = function $literal() {
     return this._atomic(function() {
         return this._rule("stringliteral", false, [], null, this["stringliteral"]);
@@ -830,6 +838,21 @@ Condition.prototype["expression_list"] = function $expression_list() {
     }) && this._optional(function() {
         return this._match(",");
     });
+};
+
+Condition.prototype["token"] = function $token() {
+    var t;
+    return this._rule("spaces", true, [], null, this["spaces"]) && (this._atomic(function() {
+        return this._rule("keyword", false, [], null, this["keyword"]);
+    }) || this._atomic(function() {
+        return this._rule("literal", false, [], null, this["literal"]);
+    }) || this._atomic(function() {
+        return this._rule("identifier", false, [], null, this["identifier"]);
+    }) || this._atomic(function() {
+        return this._rule("operator", false, [], null, this["operator"]);
+    }) || this._atomic(function() {
+        return this._rule("delimiter", false, [], null, this["delimiter"]);
+    })) && (t = this._getIntermediate(), true) && this._rule("spaces", true, [], null, this["spaces"]) && this._exec(t);
 };
 
 Condition.prototype["expr"] = function $expr() {

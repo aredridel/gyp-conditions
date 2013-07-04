@@ -1,4 +1,14 @@
 ometa Condition {
+    spaces = /[ \t\v\f]*/,
+
+    // 2.3 Keywords
+    keyword = ``and'' | ``del'' | ``from'' | ``not'' | ``while''
+                        | ``as'' | ``elif'' | ``global'' | ``or'' | ``with''
+                        | ``assert'' | ``else'' | ``if'' | ``pass'' | ``yield''
+                        | ``break'' | ``except'' | ``import'' | ``print''
+                        | ``class'' | ``exec'' | ``in'' | ``raise''
+                        | ``continue'' | ``finally'' | ``is'' | ``return''
+                        | ``def'' | ``for'' | ``lambda'' | ``try'',
     // 2.4 Literals
     literal = stringliteral | floatnumber | longinteger | integer,
 
@@ -53,14 +63,14 @@ ometa Condition {
         | ``<='' | '<' | ``>='' | '>' | ``=='' | ``!='' | ``<>'',
 
     // 2.6 Delimiters
-    delimiter =  '(' | ')' | '[' | ']' | '{' | '}' 
+    delimiter =  '(' | ')' | '[' | ']' | '{' | '}'
         | '@' | ',' | ':' | '.' | '`' | '=' | ';'
         | ``+='' | ``-='' | ``*='' | ``/='' | ``//='' | ``%=''
         | ``&='' | ``|='' | ``^='' | ``>>='' | ``<<='' | ``**='',
 
     // 5.2 Atoms
     atom = identifier | literal | enclosure,
-    enclosure = parenth_form |  list_display | generator_expression
+    enclosure = parenth_form | list_display | generator_expression
         | dict_display | set_display | string_conversion | yield_atom,
 
     // 5.2.1 Identifiers
@@ -181,6 +191,8 @@ ometa Condition {
 
     // 5.13 Expression lists
     expression_list =  expression ( "," expression )* ','?,
+
+    token = @spaces (keyword | literal | identifier | operator | delimiter ):t @spaces -> t,
 
     expr = expression end
 }
