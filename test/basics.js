@@ -3,6 +3,9 @@ var test = require('tap').test;
 var parseLiteral = function(s) {
     return cond.parser.matchAll(s, 'literal');
 };
+var parseExpr = function(s) {
+    return cond.parser.matchAll(s, 'expr');
+};
 
 test("Basic conditions", function (t) {
     t.equal(cond('n>0', {n: 1}), true);
@@ -46,6 +49,22 @@ test("Escape Codes", function(t) {
     t.equal(parseLiteral('"\\001"'), "\u0001", "octal byte");
     t.equal(parseLiteral('"\\x01"'), "\u0001", "hex byte");
     t.equal(parseLiteral('"\\z"'), "\\z", "invalid escape");
+    t.end();
+});
+
+test("Fail on invalid", function(t) {
+    t.throws(function() {
+        parseExpr("1hello");
+    });
+    t.throws(function() {
+        parseExpr("hello1");
+    });
+    t.throws(function() {
+        parseExpr("hello 1");
+    });
+    t.throws(function() {
+        parseExpr("1 hello");
+    });
     t.end();
 });
 
