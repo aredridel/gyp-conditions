@@ -2,13 +2,7 @@ ometa Condition {
     spaces = /[ \t\v\f]+/,
 
     // 2.3 Keywords
-    keyword = ``and'' | ``del'' | ``from'' | ``not'' | ``while''
-                        | ``as'' | ``elif'' | ``global'' | ``or'' | ``with''
-                        | ``assert'' | ``else'' | ``if'' | ``pass'' | ``yield''
-                        | ``break'' | ``except'' | ``import'' | ``print''
-                        | ``class'' | ``exec'' | ``in'' | ``raise''
-                        | ``continue'' | ``finally'' | ``is'' | ``return''
-                        | ``def'' | ``for'' | ``lambda'' | ``try'',
+    keyword=/and|del|from|not|while|as|elif|global|or|with|assert|else|if|pass|yield|break|except|import|print|class|exec|in|raise|continue|finally|is|return|def|for|lambda|try/,
     // 2.4 Literals
     literal = stringliteral | floatnumber | longinteger | integer,
 
@@ -190,7 +184,7 @@ ometa Condition {
     not_test =  comparison | "not" not_test:r -> ['not', r],
 
     // 5.11 Conditional Expressions
-    conditional_expression =  or_test:l ("if" or_test:c "else" expression:r) -> [ 'if', c, l, r  ]
+    conditional_expression =  or_test:l "if" or_test:c "else" expression:r -> [ 'if', c, l, r  ]
                     | or_test,
     expression      =  conditional_expression | lambda_form,
 
@@ -201,7 +195,7 @@ ometa Condition {
     // 5.13 Expression lists
     expression_list =  expression ( "," expression )* ','?,
 
-    token = @spaces? (@keyword | @literal | @identifier | @operator | @delimiter ):t -> console.log(this._tokenCache); [ t, t ],
+    token = @spaces? (@keyword | @literal | @identifier | @operator | @delimiter ):t -> [ t, t ],
 
     expr = expression:e @spaces? end -> e
 }
@@ -212,6 +206,7 @@ ometa Evaluator {
         | ['>=' interp:x interp:y ]     -> x >= y
         | ['<=' interp:x interp:y ]     -> x <= y
         | ['!=' interp:x interp:y ]     -> x != y
+        | ['<>' interp:x interp:y ]     -> x != y
         | ['==' interp:x interp:y ]     -> x == y
         | ['is' interp:x interp:y ]     -> x == y
         | ['is not' interp:x interp:y ] -> x != y
@@ -221,6 +216,7 @@ ometa Evaluator {
         | ['//' interp:x interp:y ] -> Math.floor(x / y)
         | ['/' interp:x interp:y ] -> x / y
         | ['%' interp:x interp:y ] -> x % y
+        | ['if' interp:c interp:t interp:e ] -> c ? t : e
         | anything:x -> x
 }
 

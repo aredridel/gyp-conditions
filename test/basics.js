@@ -76,3 +76,9 @@ test("Arithmetic", function (t) {
     t.equals(cond('2 + 2 * 3'), 8, "Multiplication with precedence");
     t.end();
 });
+
+test("If expression", function (t) {
+    t.equals(cond("1 if 1 else 2"), 1, "If true");
+    t.equals(cond("1 if 0 else 2"), 2, "If false");
+    t.end();
+});
