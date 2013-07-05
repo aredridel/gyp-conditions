@@ -155,18 +155,20 @@ ometa Condition {
             | primary,
 
     // 5.5 Unary arithmetic and bitwise operations
-    u_expr =  power
-            | '-' u_expr:r -> [ '-', r ]
-            | '+' u_expr:r -> [ '+', r ]
-            | '~' u_expr:r -> [ '~', r ],
+    u_expr =  "-" u_expr:r -> [ '-', r ]
+            | "+" u_expr:r -> [ '+', r ]
+            | "~" u_expr:r -> [ '~', r ]
+            | power,
 
     // 5.6 Binary arithmetic operations
-    m_expr =  u_expr
-            | m_expr:l '*' u_expr:r -> [ '*', l, r ]
+    m_expr =  m_expr:l '*' u_expr:r -> [ '*', l, r ]
             | m_expr:l ``//'' u_expr:r -> ['//', l, r]
             | m_expr:l '/' u_expr:r -> ['/', l, r]
-            | m_expr:l '%' u_expr:r -> [ '%', l, r ],
-    a_expr =  m_expr | a_expr:l '+' m_expr:r -> [ '+', l, r ] | a_expr:l '-' m_expr:r -> [ '-', l, r ],
+            | m_expr:l '%' u_expr:r -> [ '%', l, r ]
+            | u_expr,
+    a_expr =  a_expr:l '+' m_expr:r -> [ '+', l, r ]
+            | a_expr:l '-' m_expr:r -> [ '-', l, r ]
+            | m_expr,
 
     // 5.7 Shifting operations
     shift_expr = a_expr | shift_expr:l ( ``<<'' | ``>>'' ):op a_expr:r -> [ op, l, r],
@@ -213,6 +215,12 @@ ometa Evaluator {
         | ['==' interp:x interp:y ]     -> x == y
         | ['is' interp:x interp:y ]     -> x == y
         | ['is not' interp:x interp:y ] -> x != y
+        | ['+' interp:x interp:y ] -> x + y
+        | ['-' interp:x interp:y ] -> x - y
+        | ['*' interp:x interp:y ] -> x * y
+        | ['//' interp:x interp:y ] -> Math.floor(x / y)
+        | ['/' interp:x interp:y ] -> x / y
+        | ['%' interp:x interp:y ] -> x % y
         | anything:x -> x
 }
 
