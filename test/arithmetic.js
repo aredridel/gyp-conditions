@@ -1,5 +1,4 @@
-require('ometajs');
-var cond = require('../index.ometajs');
+var cond = require('../index');
 var test = require('tap').test;
 
 test("Arithmetic", function (t) {

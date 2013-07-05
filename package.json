@@ -1,6 +1,6 @@
 {
   "name": "gyp-conditions",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Matches and evaluates conditional expressions in gyp files",
   "main": "index.js",
   "scripts": {
