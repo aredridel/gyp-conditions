@@ -1,12 +1,6 @@
 require('ometajs');
 var cond = require('../index.ometajs');
 var test = require('tap').test;
-var parseLiteral = function(s) {
-    return cond.parser.matchAll(s, 'literal');
-};
-var parseExpr = function(s) {
-    return cond.parser.matchAll(s, 'expr');
-};
 
 test("Basic conditions", function (t) {
     t.equal(cond('n>0', {n: 1}), true);
