@@ -165,7 +165,8 @@ ometa Condition {
             | m_expr,
 
     // 5.7 Shifting operations
-    shift_expr = a_expr | shift_expr:l ( ``<<'' | ``>>'' ):op a_expr:r -> [ op, l, r],
+    shift_expr = shift_expr:l ( "<<" | ">>" ):op a_expr:r -> [ op, l, r]
+                | a_expr,
 
     // 5.8 Binary bitwise operations
     and_expr =  and_expr:l "&" shift_expr:r -> [ '&', l, r ]
@@ -222,6 +223,8 @@ ometa Evaluator {
         | ['&' interp:x interp:y ] -> x & y
         | ['|' interp:x interp:y ] -> { x | y }
         | ['^' interp:x interp:y ] -> x ^ y
+        | ['<<' interp:x interp:y ] -> x << y
+        | ['>>' interp:x interp:y ] -> x >> y
         | ['if' interp:c interp:t interp:e ] -> c ? t : e
         | anything:x -> x
 }

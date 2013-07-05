@@ -19,5 +19,7 @@ test("Bitwise math", function (t) {
     t.equals(cond('1 | 2'), 3, "Or: 1 | 2");
     t.equals(cond('1 ^ 1'), 0, "Xor: 1 ^ 1");
     t.equals(cond('1 ^ 2'), 3, "Xor: 1 ^ 2");
+    t.equals(cond('1 << 1'), 2, "Shift: 1 << 1");
+    t.equals(cond('2 >> 1'), 1, "Shift: 2 >> 1");
     t.end();
 });
