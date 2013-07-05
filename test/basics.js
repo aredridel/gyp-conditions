@@ -15,15 +15,6 @@ test("Basic conditions", function (t) {
     t.end();
 });
 
-test("Arithmetic", function (t) {
-    t.equals(cond('1+1'), 2, "Addition");
-    t.equals(cond('1-1'), 0, "Subtraction");
-    t.equals(cond('1 + -1'), 0, "Addition of negative number");
-    t.equals(cond('1 * 2'), 2, "Multiplication");
-    t.equals(cond('2 + 2 * 3'), 8, "Multiplication with precedence");
-    t.end();
-});
-
 test("If expression", function (t) {
     t.equals(cond("1 if 1 else 2"), 1, "If true");
     t.equals(cond("1 if 0 else 2"), 2, "If false");
