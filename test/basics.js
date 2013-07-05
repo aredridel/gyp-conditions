@@ -1,4 +1,5 @@
-var cond = require('../index');
+require('ometajs');
+var cond = require('../index.ometajs');
 var test = require('tap').test;
 var parseLiteral = function(s) {
     return cond.parser.matchAll(s, 'literal');
