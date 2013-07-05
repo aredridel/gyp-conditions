@@ -1,5 +1,5 @@
 ometa Condition {
-    spaces = /[ \t\v\f]*/,
+    spaces = /[ \t\v\f]+/,
 
     // 2.3 Keywords
     keyword = ``and'' | ``del'' | ``from'' | ``not'' | ``while''
@@ -58,7 +58,7 @@ ometa Condition {
     // Not done yet
 
     // 2.5 Operators
-    operator = '+' | '-' | '*' | ``**'' | '/' | ``//'' | '%'
+    operator = '+' | '-' | '*' | ``**'' | ``//'' | '/' | '%'
         | ``<<'' | ``>>'' | '&' | '|' | '^' | '~'
         | ``<='' | '<' | ``>='' | '>' | ``=='' | ``!='' | ``<>'',
 
@@ -151,28 +151,35 @@ ometa Condition {
     keyword_item         =  identifier "=" expression,
 
     // 5.4 Power operator
-    power = primary (``**'' u_expr)?,
+    power = primary:l ``**'' u_expr:r -> ['**', l, r]
+            | primary,
 
     // 5.5 Unary arithmetic and bitwise operations
-    u_expr =  power | '-' u_expr | '+' u_expr | '~' u_expr,
+    u_expr =  power
+            | '-' u_expr:r -> [ '-', r ]
+            | '+' u_expr:r -> [ '+', r ]
+            | '~' u_expr:r -> [ '~', r ],
 
     // 5.6 Binary arithmetic operations
-    m_expr =  u_expr | m_expr '*' u_expr | m_expr ``//'' u_expr | m_expr '/' u_expr
-            | m_expr '%' u_expr,
-    a_expr =  m_expr | a_expr '+' m_expr | a_expr '-' m_expr,
+    m_expr =  u_expr
+            | m_expr:l '*' u_expr:r -> [ '*', l, r ]
+            | m_expr:l ``//'' u_expr:r -> ['//', l, r]
+            | m_expr:l '/' u_expr:r -> ['/', l, r]
+            | m_expr:l '%' u_expr:r -> [ '%', l, r ],
+    a_expr =  m_expr | a_expr:l '+' m_expr:r -> [ '+', l, r ] | a_expr:l '-' m_expr:r -> [ '-', l, r ],
 
     // 5.7 Shifting operations
-    shift_expr = a_expr | shift_expr ( ``<<'' | ``>>'' ) a_expr,
+    shift_expr = a_expr | shift_expr:l ( ``<<'' | ``>>'' ):op a_expr:r -> [ op, l, r],
 
     // 5.8 Binary bitwise operations
-    and_expr =  shift_expr | and_expr:l '&' shift_expr:r -> [ '&', l, r ],
-    xor_expr =  and_expr | xor_expr:l '^' and_expr:r -> [ '^', l, r ],
-    or_expr  =  xor_expr | or_expr:l '|' xor_expr:r -> [ '|', l, r ],
+    and_expr =  shift_expr | and_expr:l "&" shift_expr:r -> [ '&', l, r ],
+    xor_expr =  and_expr | xor_expr:l "^" and_expr:r -> [ '^', l, r ],
+    or_expr  =  xor_expr | or_expr:l "|" xor_expr:r -> [ '|', l, r ],
 
     // 5.9 Comparisons
     comparison    =  or_expr:l comp_operator:op comparison:r -> [ op, l, r]
                     | or_expr,
-    comp_operator =  ``<='' | ``>='' |  '<' | '>' | ``=='' | ``<>'' | ``!=''
+    comp_operator =  "<=" | ">=" |  "<" | ">" | "==" | "<>" | "!="
                    | "is" "not"? | "not"? "in",
 
     // 5.10 Boolean operations
@@ -192,7 +199,7 @@ ometa Condition {
     // 5.13 Expression lists
     expression_list =  expression ( "," expression )* ','?,
 
-    token = @spaces (keyword | literal | identifier | operator | delimiter ):t @spaces -> t,
+    token = @spaces? (@keyword | @literal | @identifier | @operator:o { [ o, o] } | @delimiter ):t @spaces? -> t,
 
     expr = expression end
 }

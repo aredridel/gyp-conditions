@@ -23,7 +23,7 @@ exports.Condition = Condition;
 require("util").inherits(Condition, AbstractGrammar);
 
 Condition.prototype["spaces"] = function $spaces() {
-    return this._seq(/^([ \t\v\f]*)/);
+    return this._seq(/^([ \t\v\f]+)/);
 };
 
 Condition.prototype["keyword"] = function $keyword() {
@@ -318,7 +318,7 @@ Condition.prototype["exponent"] = function $exponent() {
 };
 
 Condition.prototype["operator"] = function $operator() {
-    return this._match("+") || this._match("-") || this._match("*") || this._seq("**") || this._match("/") || this._seq("//") || this._match("%") || this._seq("<<") || this._seq(">>") || this._match("&") || this._match("|") || this._match("^") || this._match("~") || this._seq("<=") || this._match("<") || this._seq(">=") || this._match(">") || this._seq("==") || this._seq("!=") || this._seq("<>");
+    return this._match("+") || this._match("-") || this._match("*") || this._seq("**") || this._seq("//") || this._match("/") || this._match("%") || this._seq("<<") || this._seq(">>") || this._match("&") || this._match("|") || this._match("^") || this._match("~") || this._seq("<=") || this._match("<") || this._seq(">=") || this._match(">") || this._seq("==") || this._seq("!=") || this._seq("<>");
 };
 
 Condition.prototype["delimiter"] = function $delimiter() {
@@ -657,8 +657,13 @@ Condition.prototype["keyword_item"] = function $keyword_item() {
 };
 
 Condition.prototype["power"] = function $power() {
-    return this._rule("primary", false, [], null, this["primary"]) && this._optional(function() {
-        return this._seq("**") && this._rule("u_expr", false, [], null, this["u_expr"]);
+    return this._atomic(function() {
+        var l, r;
+        return this._rule("primary", false, [], null, this["primary"]) && (l = this._getIntermediate(), 
+        true) && this._seq("**") && this._rule("u_expr", false, [], null, this["u_expr"]) && (r = this._getIntermediate(), 
+        true) && this._exec([ "**", l, r ]);
+    }) || this._atomic(function() {
+        return this._rule("primary", false, [], null, this["primary"]);
     });
 };
 
@@ -666,11 +671,17 @@ Condition.prototype["u_expr"] = function $u_expr() {
     return this._atomic(function() {
         return this._rule("power", false, [], null, this["power"]);
     }) || this._atomic(function() {
-        return this._match("-") && this._rule("u_expr", false, [], null, this["u_expr"]);
+        var r;
+        return this._match("-") && this._rule("u_expr", false, [], null, this["u_expr"]) && (r = this._getIntermediate(), 
+        true) && this._exec([ "-", r ]);
     }) || this._atomic(function() {
-        return this._match("+") && this._rule("u_expr", false, [], null, this["u_expr"]);
+        var r;
+        return this._match("+") && this._rule("u_expr", false, [], null, this["u_expr"]) && (r = this._getIntermediate(), 
+        true) && this._exec([ "+", r ]);
     }) || this._atomic(function() {
-        return this._match("~") && this._rule("u_expr", false, [], null, this["u_expr"]);
+        var r;
+        return this._match("~") && this._rule("u_expr", false, [], null, this["u_expr"]) && (r = this._getIntermediate(), 
+        true) && this._exec([ "~", r ]);
     });
 };
 
@@ -678,13 +689,25 @@ Condition.prototype["m_expr"] = function $m_expr() {
     return this._atomic(function() {
         return this._rule("u_expr", false, [], null, this["u_expr"]);
     }) || this._atomic(function() {
-        return this._rule("m_expr", false, [], null, this["m_expr"]) && this._match("*") && this._rule("u_expr", false, [], null, this["u_expr"]);
+        var l, r;
+        return this._rule("m_expr", false, [], null, this["m_expr"]) && (l = this._getIntermediate(), 
+        true) && this._match("*") && this._rule("u_expr", false, [], null, this["u_expr"]) && (r = this._getIntermediate(), 
+        true) && this._exec([ "*", l, r ]);
     }) || this._atomic(function() {
-        return this._rule("m_expr", false, [], null, this["m_expr"]) && this._seq("//") && this._rule("u_expr", false, [], null, this["u_expr"]);
+        var l, r;
+        return this._rule("m_expr", false, [], null, this["m_expr"]) && (l = this._getIntermediate(), 
+        true) && this._seq("//") && this._rule("u_expr", false, [], null, this["u_expr"]) && (r = this._getIntermediate(), 
+        true) && this._exec([ "//", l, r ]);
     }) || this._atomic(function() {
-        return this._rule("m_expr", false, [], null, this["m_expr"]) && this._match("/") && this._rule("u_expr", false, [], null, this["u_expr"]);
+        var l, r;
+        return this._rule("m_expr", false, [], null, this["m_expr"]) && (l = this._getIntermediate(), 
+        true) && this._match("/") && this._rule("u_expr", false, [], null, this["u_expr"]) && (r = this._getIntermediate(), 
+        true) && this._exec([ "/", l, r ]);
     }) || this._atomic(function() {
-        return this._rule("m_expr", false, [], null, this["m_expr"]) && this._match("%") && this._rule("u_expr", false, [], null, this["u_expr"]);
+        var l, r;
+        return this._rule("m_expr", false, [], null, this["m_expr"]) && (l = this._getIntermediate(), 
+        true) && this._match("%") && this._rule("u_expr", false, [], null, this["u_expr"]) && (r = this._getIntermediate(), 
+        true) && this._exec([ "%", l, r ]);
     });
 };
 
@@ -692,9 +715,15 @@ Condition.prototype["a_expr"] = function $a_expr() {
     return this._atomic(function() {
         return this._rule("m_expr", false, [], null, this["m_expr"]);
     }) || this._atomic(function() {
-        return this._rule("a_expr", false, [], null, this["a_expr"]) && this._match("+") && this._rule("m_expr", false, [], null, this["m_expr"]);
+        var l, r;
+        return this._rule("a_expr", false, [], null, this["a_expr"]) && (l = this._getIntermediate(), 
+        true) && this._match("+") && this._rule("m_expr", false, [], null, this["m_expr"]) && (r = this._getIntermediate(), 
+        true) && this._exec([ "+", l, r ]);
     }) || this._atomic(function() {
-        return this._rule("a_expr", false, [], null, this["a_expr"]) && this._match("-") && this._rule("m_expr", false, [], null, this["m_expr"]);
+        var l, r;
+        return this._rule("a_expr", false, [], null, this["a_expr"]) && (l = this._getIntermediate(), 
+        true) && this._match("-") && this._rule("m_expr", false, [], null, this["m_expr"]) && (r = this._getIntermediate(), 
+        true) && this._exec([ "-", l, r ]);
     });
 };
 
@@ -702,7 +731,11 @@ Condition.prototype["shift_expr"] = function $shift_expr() {
     return this._atomic(function() {
         return this._rule("a_expr", false, [], null, this["a_expr"]);
     }) || this._atomic(function() {
-        return this._rule("shift_expr", false, [], null, this["shift_expr"]) && (this._seq("<<") || this._seq(">>")) && this._rule("a_expr", false, [], null, this["a_expr"]);
+        var l, op, r;
+        return this._rule("shift_expr", false, [], null, this["shift_expr"]) && (l = this._getIntermediate(), 
+        true) && (this._seq("<<") || this._seq(">>")) && (op = this._getIntermediate(), 
+        true) && this._rule("a_expr", false, [], null, this["a_expr"]) && (r = this._getIntermediate(), 
+        true) && this._exec([ op, l, r ]);
     });
 };
 
@@ -712,7 +745,7 @@ Condition.prototype["and_expr"] = function $and_expr() {
     }) || this._atomic(function() {
         var l, r;
         return this._rule("and_expr", false, [], null, this["and_expr"]) && (l = this._getIntermediate(), 
-        true) && this._match("&") && this._rule("shift_expr", false, [], null, this["shift_expr"]) && (r = this._getIntermediate(), 
+        true) && this._rule("token", true, [ "&" ], null, this["token"]) && this._rule("shift_expr", false, [], null, this["shift_expr"]) && (r = this._getIntermediate(), 
         true) && this._exec([ "&", l, r ]);
     });
 };
@@ -723,7 +756,7 @@ Condition.prototype["xor_expr"] = function $xor_expr() {
     }) || this._atomic(function() {
         var l, r;
         return this._rule("xor_expr", false, [], null, this["xor_expr"]) && (l = this._getIntermediate(), 
-        true) && this._match("^") && this._rule("and_expr", false, [], null, this["and_expr"]) && (r = this._getIntermediate(), 
+        true) && this._rule("token", true, [ "^" ], null, this["token"]) && this._rule("and_expr", false, [], null, this["and_expr"]) && (r = this._getIntermediate(), 
         true) && this._exec([ "^", l, r ]);
     });
 };
@@ -734,7 +767,7 @@ Condition.prototype["or_expr"] = function $or_expr() {
     }) || this._atomic(function() {
         var l, r;
         return this._rule("or_expr", false, [], null, this["or_expr"]) && (l = this._getIntermediate(), 
-        true) && this._match("|") && this._rule("xor_expr", false, [], null, this["xor_expr"]) && (r = this._getIntermediate(), 
+        true) && this._rule("token", true, [ "|" ], null, this["token"]) && this._rule("xor_expr", false, [], null, this["xor_expr"]) && (r = this._getIntermediate(), 
         true) && this._exec([ "|", l, r ]);
     });
 };
@@ -752,7 +785,21 @@ Condition.prototype["comparison"] = function $comparison() {
 };
 
 Condition.prototype["comp_operator"] = function $comp_operator() {
-    return this._seq("<=") || this._seq(">=") || this._match("<") || this._match(">") || this._seq("==") || this._seq("<>") || this._seq("!=") || this._atomic(function() {
+    return this._atomic(function() {
+        return this._rule("token", true, [ "<=" ], null, this["token"]);
+    }) || this._atomic(function() {
+        return this._rule("token", true, [ ">=" ], null, this["token"]);
+    }) || this._atomic(function() {
+        return this._rule("token", true, [ "<" ], null, this["token"]);
+    }) || this._atomic(function() {
+        return this._rule("token", true, [ ">" ], null, this["token"]);
+    }) || this._atomic(function() {
+        return this._rule("token", true, [ "==" ], null, this["token"]);
+    }) || this._atomic(function() {
+        return this._rule("token", true, [ "<>" ], null, this["token"]);
+    }) || this._atomic(function() {
+        return this._rule("token", true, [ "!=" ], null, this["token"]);
+    }) || this._atomic(function() {
         return this._rule("token", true, [ "is" ], null, this["token"]) && this._optional(function() {
             return this._rule("token", true, [ "not" ], null, this["token"]);
         });
@@ -842,17 +889,23 @@ Condition.prototype["expression_list"] = function $expression_list() {
 
 Condition.prototype["token"] = function $token() {
     var t;
-    return this._rule("spaces", true, [], null, this["spaces"]) && (this._atomic(function() {
-        return this._rule("keyword", false, [], null, this["keyword"]);
+    return this._optional(function() {
+        return this._rule("spaces", true, [], null, this["spaces"]);
+    }) && (this._atomic(function() {
+        return this._rule("keyword", true, [], null, this["keyword"]);
     }) || this._atomic(function() {
-        return this._rule("literal", false, [], null, this["literal"]);
+        return this._rule("literal", true, [], null, this["literal"]);
     }) || this._atomic(function() {
-        return this._rule("identifier", false, [], null, this["identifier"]);
+        return this._rule("identifier", true, [], null, this["identifier"]);
     }) || this._atomic(function() {
-        return this._rule("operator", false, [], null, this["operator"]);
+        var o;
+        return this._rule("operator", true, [], null, this["operator"]) && (o = this._getIntermediate(), 
+        true) && this._exec([ o, o ]);
     }) || this._atomic(function() {
-        return this._rule("delimiter", false, [], null, this["delimiter"]);
-    })) && (t = this._getIntermediate(), true) && this._rule("spaces", true, [], null, this["spaces"]) && this._exec(t);
+        return this._rule("delimiter", true, [], null, this["delimiter"]);
+    })) && (t = this._getIntermediate(), true) && this._optional(function() {
+        return this._rule("spaces", true, [], null, this["spaces"]);
+    }) && this._exec(t);
 };
 
 Condition.prototype["expr"] = function $expr() {
