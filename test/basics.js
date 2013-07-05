@@ -68,3 +68,11 @@ test("Fail on invalid", function(t) {
     t.end();
 });
 
+test("Arithmetic", function (t) {
+    t.equals(cond('1+1'), 2, "Addition");
+    t.equals(cond('1-1'), 0, "Subtraction");
+    t.equals(cond('1 + -1'), 0, "Addition of negative number");
+    t.equals(cond('1 * 2'), 2, "Multiplication");
+    t.equals(cond('2 + 2 * 3'), 8, "Multiplication with precedence");
+    t.end();
+});

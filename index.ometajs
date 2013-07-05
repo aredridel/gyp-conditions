@@ -114,7 +114,7 @@ ometa Condition {
     yield_expression =  ``yield'' expression_list?,
 
     // 5.3 Primaries
-    primary =  atom | attributeref | subscription | slicing | call,
+    primary = @spaces? atom | attributeref | subscription | slicing | call,
 
     // 5.3.1 Attribute references
     attributeref =  primary '.' identifier,
@@ -151,23 +151,23 @@ ometa Condition {
     keyword_item         =  identifier "=" expression,
 
     // 5.4 Power operator
-    power = primary:l ``**'' u_expr:r -> ['**', l, r]
+    power = primary:l "**" u_expr:r -> ['**', l, r]
             | primary,
 
     // 5.5 Unary arithmetic and bitwise operations
-    u_expr =  "-" u_expr:r -> [ '-', r ]
-            | "+" u_expr:r -> [ '+', r ]
-            | "~" u_expr:r -> [ '~', r ]
+    u_expr =  "-" u_expr:r -> -r
+            | "+" u_expr:r -> r
+            | "~" u_expr:r -> ~r
             | power,
 
     // 5.6 Binary arithmetic operations
-    m_expr =  m_expr:l '*' u_expr:r -> [ '*', l, r ]
-            | m_expr:l ``//'' u_expr:r -> ['//', l, r]
-            | m_expr:l '/' u_expr:r -> ['/', l, r]
-            | m_expr:l '%' u_expr:r -> [ '%', l, r ]
+    m_expr =  m_expr:l "*" u_expr:r -> [ '*', l, r ]
+            | m_expr:l "//" u_expr:r -> ['//', l, r]
+            | m_expr:l "/" u_expr:r -> ['/', l, r]
+            | m_expr:l "%" u_expr:r -> [ '%', l, r ]
             | u_expr,
-    a_expr =  a_expr:l '+' m_expr:r -> [ '+', l, r ]
-            | a_expr:l '-' m_expr:r -> [ '-', l, r ]
+    a_expr =  a_expr:l "+" m_expr:r -> [ '+', l, r ]
+            | a_expr:l "-" m_expr:r -> [ '-', l, r ]
             | m_expr,
 
     // 5.7 Shifting operations
@@ -201,7 +201,7 @@ ometa Condition {
     // 5.13 Expression lists
     expression_list =  expression ( "," expression )* ','?,
 
-    token = @spaces? (@keyword | @literal | @identifier | @operator | @delimiter ):t -> t,
+    token = @spaces? (@keyword | @literal | @identifier | @operator | @delimiter ):t -> console.log(this._tokenCache); [ t, t ],
 
     expr = expression:e @spaces? end -> e
 }
@@ -246,5 +246,7 @@ module.exports = function (str, variables) {
     var tree = Condition.matchAll(str, 'expr', { variables: variables });
     return Evaluator.match(tree, 'interp');
 }
+
+module.exports.evaluator = Evaluator;
 
 module.exports.parser = Condition;
