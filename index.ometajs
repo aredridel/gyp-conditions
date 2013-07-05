@@ -199,9 +199,9 @@ ometa Condition {
     // 5.13 Expression lists
     expression_list =  expression ( "," expression )* ','?,
 
-    token = @spaces? (@keyword | @literal | @identifier | @operator:o { [ o, o] } | @delimiter ):t @spaces? -> t,
+    token = @spaces? (@keyword | @literal | @identifier | @operator | @delimiter ):t -> t,
 
-    expr = expression end
+    expr = expression:e @spaces? end -> e
 }
 
 ometa Evaluator {
