@@ -168,9 +168,12 @@ ometa Condition {
     shift_expr = a_expr | shift_expr:l ( ``<<'' | ``>>'' ):op a_expr:r -> [ op, l, r],
 
     // 5.8 Binary bitwise operations
-    and_expr =  shift_expr | and_expr:l "&" shift_expr:r -> [ '&', l, r ],
-    xor_expr =  and_expr | xor_expr:l "^" and_expr:r -> [ '^', l, r ],
-    or_expr  =  xor_expr | or_expr:l "|" xor_expr:r -> [ '|', l, r ],
+    and_expr =  and_expr:l "&" shift_expr:r -> [ '&', l, r ]
+                | shift_expr,
+    xor_expr =  xor_expr:l "^" and_expr:r -> [ '^', l, r ]
+                | and_expr,
+    or_expr  =  or_expr:l "|" xor_expr:r -> [ '|', l, r ]
+                | xor_expr,
 
     // 5.9 Comparisons
     comparison    =  or_expr:l comp_operator:op comparison:r -> [ op, l, r]
@@ -216,6 +219,9 @@ ometa Evaluator {
         | ['//' interp:x interp:y ] -> Math.floor(x / y)
         | ['/' interp:x interp:y ] -> x / y
         | ['%' interp:x interp:y ] -> x % y
+        | ['&' interp:x interp:y ] -> x & y
+        | ['|' interp:x interp:y ] -> { x | y }
+        | ['^' interp:x interp:y ] -> x ^ y
         | ['if' interp:c interp:t interp:e ] -> c ? t : e
         | anything:x -> x
 }

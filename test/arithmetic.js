@@ -11,3 +11,13 @@ test("Arithmetic", function (t) {
     t.end();
 });
 
+test("Bitwise math", function (t) {
+    t.equals(cond('1 & 3'), 1, "And: 1 & 3");
+    t.equals(cond('2 & 3'), 2, "And: 2 & 3");
+    t.equals(cond('2 & 1'), 0, "And: 2 & 1");
+    t.equals(cond('1 | 1'), 1, "Or: 1 | 1");
+    t.equals(cond('1 | 2'), 3, "Or: 1 | 2");
+    t.equals(cond('1 ^ 1'), 0, "Xor: 1 ^ 1");
+    t.equals(cond('1 ^ 2'), 3, "Xor: 1 ^ 2");
+    t.end();
+});
